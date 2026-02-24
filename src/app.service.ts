@@ -5,7 +5,7 @@ export class AppService {
   getInfo(): { message: string } {
     return {
       message:
-        'This is the Auth Service. It handles user authentication and authorization.',
+        'This is the Product Service. It handles product management and related operations.',
     };
   }
 }
