@@ -20,7 +20,6 @@ import {
 } from '../../common/utils/pagination.util';
 import { DataSource, FindOptionsWhere, ILike } from 'typeorm';
 import { ClientKafka } from '@nestjs/microservices';
-import { OutboxEvent } from '../domain/outbox.entity';
 
 @Injectable()
 export class MedicineService {
@@ -37,7 +36,6 @@ export class MedicineService {
   async create(dto: CreateMedicineDto): Promise<Medicine> {
     return this.dataSource.transaction(async (manager) => {
       const medicineRepo = manager.getRepository(Medicine);
-      const outboxRepo = manager.getRepository(OutboxEvent);
 
       const medicine = medicineRepo.create({
         medicineCode: dto.medicineCode,
@@ -53,17 +51,14 @@ export class MedicineService {
 
       const savedMedicine = await medicineRepo.save(medicine);
 
-      await outboxRepo.save({
-        topic: 'medicine.created.v1',
-        payload: {
-          medicineId: savedMedicine.id,
-          roomId: savedMedicine.roomId,
-        },
-      });
-
       await this.kafkaClient.emit('medicine.created.v1', {
         medicineId: savedMedicine.id,
         roomId: savedMedicine.roomId,
+        info: {
+          medicineCode: savedMedicine.medicineCode,
+          medicineName_en: savedMedicine.medicineName_en,
+          medicineName_th: savedMedicine.medicineName_th,
+        }
       });
 
       return savedMedicine;
@@ -114,11 +109,26 @@ export class MedicineService {
     if (dto.medicineCondition_en !== undefined) medicine.medicineCondition_en = dto.medicineCondition_en;
     if (dto.medicineNote !== undefined) medicine.medicineNote = dto.medicineNote;
 
-    return this.medicineRepository.save(medicine);
+    const savedMedicine = await this.medicineRepository.save(medicine);
+
+    await this.kafkaClient.emit('medicine.updated.v1', {
+        medicineId: savedMedicine.id,
+        info: {
+          medicineCode: savedMedicine.medicineCode,
+          medicineName_en: savedMedicine.medicineName_en,
+          medicineName_th: savedMedicine.medicineName_th,
+        }
+    });
+
+    return savedMedicine;
   }
 
   async remove(id: string): Promise<void> {
-    await this.findById(id);
+    const medicine = await this.findById(id);
     await this.medicineRepository.softDelete(id);
+
+    await this.kafkaClient.emit('medicine.deleted.v1', {
+      medicineCode: medicine.medicineCode,
+    });
   }
 }
