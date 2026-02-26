@@ -36,4 +36,9 @@ export class UpdateMedicineDto {
   @IsOptional()
   @IsString()
   medicineNote?: string;
+
+  @ApiPropertyOptional({ example: 'uuid-of-room', type: 'string' })
+  @IsOptional()
+  @IsString()
+  roomId?: string;
 }

@@ -74,13 +74,14 @@ export class MedicineService {
     const where: FindOptionsWhere<Medicine> = {};
     if (medicineCode) where.medicineCode = medicineCode;
     if (medicineName_en) where.medicineName_en = ILike(`%${medicineName_en}%`);
-
+    console.log('Find medicines with filters:', where, `page: ${page}, limit: ${limit}`);
     const [data, total] = await this.medicineRepository.findAndCount({
       where,
       skip,
       take,
       order: { medicineCode: 'ASC' },
     });
+    console.log(`Found ${data.length} medicines, total: ${total}`);
 
     return { data, meta: buildPaginationMeta(total, page, limit) };
   }
@@ -108,6 +109,7 @@ export class MedicineService {
     if (dto.medicineCondition_th !== undefined) medicine.medicineCondition_th = dto.medicineCondition_th;
     if (dto.medicineCondition_en !== undefined) medicine.medicineCondition_en = dto.medicineCondition_en;
     if (dto.medicineNote !== undefined) medicine.medicineNote = dto.medicineNote;
+    if (dto.roomId !== undefined) medicine.roomId = dto.roomId;
 
     const savedMedicine = await this.medicineRepository.save(medicine);
 
