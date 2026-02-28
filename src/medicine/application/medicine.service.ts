@@ -74,15 +74,14 @@ export class MedicineService {
     const where: FindOptionsWhere<Medicine> = {};
     if (medicineCode) where.medicineCode = medicineCode;
     if (medicineName_en) where.medicineName_en = ILike(`%${medicineName_en}%`);
-    console.log('Find medicines with filters:', where, `page: ${page}, limit: ${limit}`);
+    
     const [data, total] = await this.medicineRepository.findAndCount({
       where,
       skip,
       take,
       order: { medicineCode: 'ASC' },
     });
-    console.log(`Found ${data.length} medicines, total: ${total}`);
-
+    
     return { data, meta: buildPaginationMeta(total, page, limit) };
   }
 
