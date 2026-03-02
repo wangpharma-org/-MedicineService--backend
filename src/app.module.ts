@@ -3,6 +3,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MedicineModule } from './medicine/medicine.module';
+import { StockSnapshotModule } from './stocksnapshot/stocksnapshot.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -21,7 +22,8 @@ import { getTypeOrmConfig } from './common/config/database.config';
         secret: config.getOrThrow<string>('JWT_SECRET'),
       }),
     }),
-    MedicineModule
+    MedicineModule,
+    StockSnapshotModule
   ],
   controllers: [AppController],
   providers: [
